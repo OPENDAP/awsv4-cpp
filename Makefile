@@ -1,7 +1,17 @@
 CC=$(CXX)
-CFLAGS=-Wall -Werror -Wextra -pedantic -pedantic-errors -std=c++11 -g -O2 
-MY_CFLAGS=-I/usr/local/include -I/usr/include/openssl
-LIBS=$(LDFLAGS) -lPocoFoundation -lPocoNet -lcrypto 
+CFLAGS=-Wall -Werror -Wextra -pedantic -pedantic-errors -std=c++11 -g -O2
+
+# Modified to build against the Poco library installed with/by hyrax-dependencies.
+# The env var $prefix must be set. Note my hacks for OSX 10.14.x and brew-installed
+# openssl, which is not symlinked into /usr/local. jhrg 11/23/19
+
+# MY_CFLAGS=-I/usr/local/include -I/usr/include/openssl
+MY_CFLAGS=-I$$prefix/deps/include -I/usr/local/Cellar/openssl@1.1/1.1.1d/include
+LDFLAGS=-L$$prefix/deps/lib -L/usr/local/Cellar/openssl@1.1/1.1.1d/lib
+
+LIBS=$(LDFLAGS) -lPocoFoundation -lcrypto
+
+# -lPocoNet
 
 all: awsv4
 
