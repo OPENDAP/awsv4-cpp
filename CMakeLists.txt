@@ -4,8 +4,8 @@ project(awsv4_cpp)
 set(CMAKE_CXX_STANDARD 11)
 
 include_directories(.)
-include_directories(/Users/jimg/src/opendap/hyrax_git/duild/deps/include)
-include_directories(-I/usr/local/Cellar/openssl@1.1/1.1.1d/lib)
+include_directories(/Users/jimg/src/opendap/hyrax_git/build/deps/include)
+include_directories(/usr/local/Cellar/openssl@1.1/1.1.1d/include)
 
 add_executable(awsv4_cpp
         awsv4.cpp

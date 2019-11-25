@@ -20,6 +20,7 @@
 namespace AWSV4 {
     const std::string ENDL{"\n"};
     const std::string POST{"POST"};
+    const std::string GET{"GET"};
     const std::string STRING_TO_SIGN_ALGO{"AWS4-HMAC-SHA256"};
     const std::string AWS4{"AWS4"};
     const std::string AWS4_REQUEST{"aws4_request"};

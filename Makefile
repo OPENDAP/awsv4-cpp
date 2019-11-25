@@ -1,5 +1,5 @@
 CC=$(CXX)
-CFLAGS=-Wall -Werror -Wextra -pedantic -pedantic-errors -std=c++11 -g -O2
+CFLAGS=-Wall -Werror -Wextra -pedantic -pedantic-errors -std=c++11 -g3 -O0
 
 # Modified to build against the Poco library installed with/by hyrax-dependencies.
 # The env var $prefix must be set. Note my hacks for OSX 10.14.x and brew-installed

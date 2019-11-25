@@ -118,13 +118,13 @@ namespace AWSV4 {
                                            const std::string& canonical_query_string,
                                            const std::string& canonical_headers,
                                            const std::string& signed_headers,
-                                           const std::string& payload) noexcept {
+                                           const std::string& shar256_of_payload) noexcept {
         return http_request_method + ENDL + 
             canonical_uri + ENDL +
             canonical_query_string + ENDL + 
             canonical_headers + ENDL + 
             signed_headers + ENDL +
-            sha256_base16(payload);
+                shar256_of_payload;
     }
 
     // -----------------------------------------------------------------------------------
@@ -200,7 +200,17 @@ namespace AWSV4 {
         std::strcpy(c_aws4_request, AWS4_REQUEST.c_str());        
         unsigned char *kSigning;
         kSigning = HMAC(EVP_sha256(), kService, strlen((char *)kService), 
-                     (unsigned char*)c_aws4_request, strlen(c_aws4_request), NULL, NULL); 
+                     (unsigned char*)c_aws4_request, strlen(c_aws4_request), NULL, NULL);
+
+#if 0
+        // Added to print the kSigning value to check against AWS example. jhrg 11/24/19
+        char kSigningOutputBuffer[65];
+        for (int i = 0; i < SHA256_DIGEST_LENGTH; i++) {
+            sprintf(kSigningOutputBuffer + (i * 2), "%02x", kSigning[i]);
+        }
+        kSigningOutputBuffer[64] = 0;
+        std::cerr << "kSigning: " << kSigningOutputBuffer << std::endl;
+#endif
 
         char *c_string_to_sign = new char [string_to_sign.length()+1];
         std::strcpy(c_string_to_sign, string_to_sign.c_str());        
