@@ -15,20 +15,17 @@ LIBS=$(LDFLAGS) -lPocoFoundation -lcrypto
 
 all: awsv4
 
-awsv4: awsv4.o main.o url.o url.h awsv4.hpp
+awsv4: awsv4.o main.o url.o url.h awsv4.h
 	$(CXX) -o awsv4 main.o awsv4.o url.o $(LIBS)
 
 lib: awsv4.o
 	$(CXX) awsv4.o url.o -shared -o libawsv4.so
 
-awsv4.o: awsv4.cpp awsv4.hpp 
+awsv4.o: awsv4.cc awsv4.h
 	$(CXX) -fPIC $(CFLAGS) $(MY_CFLAGS) -c awsv4.cpp
 
-main.o: main.cpp awsv4.hpp url.h
+main.o: main.cc awsv4.h url.h
 	$(CXX) $(CFLAGS) $(MY_CFLAGS) -c main.cpp
-
-tokenizer.o: tokenizer.cc
-	$(CXX) $(CFLAGS) -c tokenizer.cc
 
 clean:
 	rm -f *.o awsv4 tokenizer

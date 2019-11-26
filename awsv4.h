@@ -1,23 +1,42 @@
+
+
+// -*- mode: c++; c-basic-offset:4 -*-
+
+// This file is part of the Hyrax data server.
+
+// This code is derived from https://github.com/bradclawsie/awsv4-cpp
+// Copyright (c) 2013, brad clawsie
+// All rights reserved.
+// see the file AWSV4_LICENSE
+
+// Copyright (c) 2019 OPeNDAP, Inc.
+// Modifications Author: James Gallagher <jgallagher@opendap.org>
+//
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public
+// License as published by the Free Software Foundation; either
+// version 2.1 of the License, or (at your option) any later version.
+//
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// Lesser General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public
+// License along with this library; if not, write to the Free Software
+// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+//
+// You can contact OPeNDAP, Inc. at PO Box 112, Saunderstown, RI. 02874-0112.
+
 #ifndef AWSV4_HPP
 #define AWSV4_HPP
 
 #include <cstdio>
-#include <cstring>
-
-#include <stdexcept>
-#include <algorithm>
 #include <map>
 #include <ctime>
 #include <iostream>
-#include <sstream>
 
-//#include "Poco/URI.h"
-#include "Poco/StringTokenizer.h"
-
-#include "url.h"
-
-#include "openssl/sha.h"
-#include "openssl/hmac.h"
+#include <openssl/sha.h>
 
 namespace AWSV4 {
     const std::string ENDL{"\n"};
@@ -31,12 +50,6 @@ namespace AWSV4 {
     
     const std::string sha256_base16(const std::string) noexcept;
 
-#if 0
-    const std::string canonicalize_uri(const Poco::URI& uri) noexcept;
-    
-    const std::string canonicalize_query(const Poco::URI& uri) noexcept;
-#endif
-    
     const std::map<std::string,std::string> canonicalize_headers(const std::vector<std::string>& headers) noexcept;
     
     const std::string map_headers_string(const std::map<std::string,std::string>& header_key2val) noexcept;

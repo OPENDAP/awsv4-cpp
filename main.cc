@@ -1,5 +1,5 @@
 #include <iostream>
-#include "awsv4.hpp"
+#include "awsv4.h"
 
 // From Amazon (https://docs.aws.amazon.com/general/latest/gr/signature-v4-examples.html)
 // The following input

@@ -1,4 +1,49 @@
-#include "awsv4.hpp"
+
+
+// -*- mode: c++; c-basic-offset:4 -*-
+
+// This file is part of the Hyrax data server.
+
+// This code is derived from https://github.com/bradclawsie/awsv4-cpp
+// Copyright (c) 2013, brad clawsie
+// All rights reserved.
+// see the file AWSV4_LICENSE
+
+// Copyright (c) 2019 OPeNDAP, Inc.
+// Modifications Author: James Gallagher <jgallagher@opendap.org>
+//
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public
+// License as published by the Free Software Foundation; either
+// version 2.1 of the License, or (at your option) any later version.
+//
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// Lesser General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public
+// License along with this library; if not, write to the Free Software
+// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+//
+// You can contact OPeNDAP, Inc. at PO Box 112, Saunderstown, RI. 02874-0112.
+
+#include "awsv4.h"
+
+#include <regex>
+#include <cstring>
+
+#include <stdexcept>
+#include <algorithm>
+#include <map>
+#include <ctime>
+#include <iostream>
+#include <sstream>
+
+#include <openssl/sha.h>
+#include <openssl/hmac.h>
+
+#include "url.h"
 
 namespace AWSV4 {
 
@@ -38,101 +83,51 @@ namespace AWSV4 {
         return std::string{outputBuffer};
     }
 
+    // From https://stackoverflow.com/questions/1798112/removing-leading-and-trailing-spaces-from-a-string
+    static std::string trim(const std::string& str, const std::string& whitespace = " \t")
+    {
+        const auto strBegin = str.find_first_not_of(whitespace);
+        if (strBegin == std::string::npos)
+            return ""; // no content
+
+        const auto strEnd = str.find_last_not_of(whitespace);
+        const auto strRange = strEnd - strBegin + 1;
+
+        return str.substr(strBegin, strRange);
+    }
+
     // -----------------------------------------------------------------------------------
     // TASK 1 - create a canonical request
     // http://docs.aws.amazon.com/general/latest/gr/sigv4-create-canonical-request.html
 
-#if 0
-
-// uri should be normalize()'d before calling here, as this takes a const ref param and we don't
-    // want to normalize repeatedly. the return value is not a uri specifically, but a uri fragment,
-    // as such the return value should not be used to initialize a uri object
-    const std::string canonicalize_uri(const Poco::URI& uri) noexcept {
-        const auto p = uri.getPath();
-        if (p.empty()) return "/";
-        std::string encoded_path;
-        Poco::URI::encode(uri.getPath(),"",encoded_path);
-        return encoded_path;
-    }
-
-    const std::string canonicalize_query(const Poco::URI& uri) noexcept {
-        const std::string query_delim{"&"};
-        const auto q = uri.getQuery();
-        if (q.empty()) return "";
-        const Poco::StringTokenizer tok{q,query_delim,0};
-        std::vector<std::string> parts;
-        for (const auto& t:tok) {
-            std::string encoded_arg;
-            Poco::URI::encode(t,"",encoded_arg);
-            parts.push_back(encoded_arg);
-        }
-        std::sort(parts.begin(),parts.end());
-        return join(parts,query_delim);
-    }
-
-#endif
-
     // create a map of the "canonicalized" headers
     // will return empty map on malformed input.
+    //
+    // headers A vector where each element is a header name and value, separated by a colon. No spaces.
     const std::map<std::string,std::string> canonicalize_headers(const std::vector<std::string>& headers) noexcept {
-        const std::string header_delim{":"};
         std::map<std::string,std::string> header_key2val;
-        for (const auto& h:headers) {
-            const Poco::StringTokenizer pair{h,header_delim,2}; // 2 -> TOK_TRIM, trim whitespace
-            if (pair.count() != 2) {
-                std::cerr << "malformed header: " << h << std::endl;
+        for (const auto &h: headers) {
+            std::regex reg("\\:");
+            std::sregex_token_iterator iter(h.begin(), h.end(), reg, -1);
+            std::sregex_token_iterator end;
+            std::vector<std::string> pair(iter, end);
+            if (pair.size() != 2) {
                 header_key2val.clear();
                 return header_key2val;
             }
-            std::string key{pair[0]};
-            const std::string val{pair[1]};
+
+            std::string key{trim(pair[0])};
+            const std::string val{trim(pair[1])};
             if (key.empty() || val.empty()) {
-                std::cerr << "malformed header: " << h << std::endl;
                 header_key2val.clear();
                 return header_key2val;
             }
+
             std::transform(key.begin(), key.end(), key.begin(),::tolower);
             header_key2val[key] = val;
         }
         return header_key2val;
     }
-
-#if 0
-
-// create a map of the "canonicalized" headers
-    // will return empty map on malformed input.
-    const std::map<std::string,std::string> canonicalize_headers(const std::vector<std::string>& headers) noexcept {
-        const std::string header_delim{":"};
-
-        regex reg("\\:");
-
-        sregex_token_iterator iter(str.begin(), str.end(), reg, -1);
-        sregex_token_iterator end;
-
-        vector<string> vec(iter, end);
-
-        std::map<std::string,std::string> header_key2val;
-        for (const auto& h:headers) {
-            const Poco::StringTokenizer pair{h,header_delim,2}; // 2 -> TOK_TRIM, trim whitespace
-            if (pair.count() != 2) {
-                std::cerr << "malformed header: " << h << std::endl;
-                header_key2val.clear();
-                return header_key2val;
-            }
-            std::string key{pair[0]};
-            const std::string val{pair[1]};
-            if (key.empty() || val.empty()) {
-                std::cerr << "malformed header: " << h << std::endl;
-                header_key2val.clear();
-                return header_key2val;
-            }
-            std::transform(key.begin(), key.end(), key.begin(),::tolower);
-            header_key2val[key] = val;
-        }
-        return header_key2val;
-    }
-
-#endif
 
     // get a string representation of header:value lines
     const std::string map_headers_string(const std::map<std::string,std::string>& header_key2val) noexcept {
