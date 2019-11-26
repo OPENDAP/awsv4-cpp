@@ -7,10 +7,10 @@
 
 namespace AWSV4 {
 
-struct url {
+struct url_parser {
 public:
     // omitted copy, ==, accessors, ...
-    explicit url(const std::string &url_s) {
+    explicit url_parser(const std::string &url_s) {
         parse(url_s);
     }
 

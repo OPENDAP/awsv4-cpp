@@ -6,8 +6,8 @@ CFLAGS=-Wall -Werror -Wextra -pedantic -pedantic-errors -std=c++11 -g3 -O0
 # openssl, which is not symlinked into /usr/local. jhrg 11/23/19
 
 # MY_CFLAGS=-I/usr/local/include -I/usr/include/openssl
-MY_CFLAGS=-I$$prefix/deps/include -I/usr/local/Cellar/openssl@1.1/1.1.1d/include
-LDFLAGS=-L$$prefix/deps/lib -L/usr/local/Cellar/openssl@1.1/1.1.1d/lib
+MY_CFLAGS=-I/usr/local/opt/openssl/include
+LDFLAGS=-L/usr/local/opt/openssl/lib
 
 LIBS=$(LDFLAGS) -lcrypto
 
@@ -15,17 +15,17 @@ LIBS=$(LDFLAGS) -lcrypto
 
 all: awsv4
 
-awsv4: awsv4.o main.o url.o url.h awsv4.h
-	$(CXX) -o awsv4 main.o awsv4.o url.o $(LIBS)
+awsv4: awsv4.o main.o url_parser.o url_parser.h awsv4.h
+	$(CXX) -o awsv4 main.o awsv4.o url_parser.o $(LIBS)
 
 lib: awsv4.o
-	$(CXX) awsv4.o url.o -shared -o libawsv4.so
+	$(CXX) awsv4.o url_parser.o -shared -o libawsv4.so
 
 awsv4.o: awsv4.cc awsv4.h
 	$(CXX) -fPIC $(CFLAGS) $(MY_CFLAGS) -c awsv4.cc
 
-main.o: main.cc awsv4.h url.h
+main.o: main.cc awsv4.h url_parser.h
 	$(CXX) $(CFLAGS) $(MY_CFLAGS) -c main.cc
 
 clean:
-	rm -f *.o awsv4 tokenizer
+	rm -f *.o awsv4

@@ -6,13 +6,13 @@
 #include <cctype>
 #include <functional>
 
-#include "url.h"
+#include "url_parser.h"
 
 using namespace std;
 
 namespace AWSV4 {
 
-void url::parse(const string &url_s) {
+void url_parser::parse(const string &url_s) {
     const string prot_end("://");
     string::const_iterator prot_i = search(url_s.begin(), url_s.end(),
                                            prot_end.begin(), prot_end.end());

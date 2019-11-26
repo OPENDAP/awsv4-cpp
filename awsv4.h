@@ -48,9 +48,9 @@ namespace AWSV4 {
     
     void sha256(const std::string str, unsigned char outputBuffer[SHA256_DIGEST_LENGTH]) noexcept;
     
-    const std::string sha256_base16(const std::string) noexcept;
+    std::string sha256_base16(const std::string) noexcept;
 
-    const std::map<std::string,std::string> canonicalize_headers(const std::vector<std::string>& headers) noexcept;
+    std::map<std::string,std::string> canonicalize_headers(const std::vector<std::string>& headers) noexcept;
     
     const std::string map_headers_string(const std::map<std::string,std::string>& header_key2val) noexcept;
     

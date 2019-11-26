@@ -43,11 +43,11 @@
 #include <openssl/sha.h>
 #include <openssl/hmac.h>
 
-#include "url.h"
+#include "url_parser.h"
 
 namespace AWSV4 {
 
-    const std::string join(const std::vector<std::string>& ss,const std::string delim) noexcept {
+    std::string join(const std::vector<std::string>& ss,const std::string delim) noexcept {
         std::stringstream sstream;
         const auto l = ss.size() - 1;
         std::vector<int>::size_type i;
@@ -72,7 +72,7 @@ namespace AWSV4 {
         }
     }
 
-    const std::string sha256_base16(const std::string str) noexcept {
+    std::string sha256_base16(const std::string str) noexcept {
         unsigned char hashOut[SHA256_DIGEST_LENGTH];
         AWSV4::sha256(str,hashOut);
         char outputBuffer[65];
@@ -104,7 +104,7 @@ namespace AWSV4 {
     // will return empty map on malformed input.
     //
     // headers A vector where each element is a header name and value, separated by a colon. No spaces.
-    const std::map<std::string,std::string> canonicalize_headers(const std::vector<std::string>& headers) noexcept {
+    std::map<std::string,std::string> canonicalize_headers(const std::vector<std::string>& headers) noexcept {
         std::map<std::string,std::string> header_key2val;
         for (const auto &h: headers) {
             std::regex reg("\\:");
@@ -288,16 +288,7 @@ namespace AWSV4 {
                                               const std::string region = "us-west-2", const std::string service = "s3",
                                               const bool verbose = false) {
 
-#if 0
-        Poco::URI uri;
-        try {
-            uri = Poco::URI(uri_str);
-        } catch (std::exception& e) {
-            throw std::runtime_error(e.what());
-        }
-        uri.normalize();
-#endif
-        url uri(uri_str);
+        url_parser uri(uri_str);
 
         // canonical_uri is the path component of the URL. Later we will need the host.
         const auto canonical_uri = uri.path(); // AWSV4::canonicalize_uri(uri);
