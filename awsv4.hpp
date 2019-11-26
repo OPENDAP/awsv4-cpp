@@ -11,8 +11,10 @@
 #include <iostream>
 #include <sstream>
 
-#include "Poco/URI.h"
+//#include "Poco/URI.h"
 #include "Poco/StringTokenizer.h"
+
+#include "url.h"
 
 #include "openssl/sha.h"
 #include "openssl/hmac.h"
@@ -29,9 +31,11 @@ namespace AWSV4 {
     
     const std::string sha256_base16(const std::string) noexcept;
 
+#if 0
     const std::string canonicalize_uri(const Poco::URI& uri) noexcept;
     
     const std::string canonicalize_query(const Poco::URI& uri) noexcept;
+#endif
     
     const std::map<std::string,std::string> canonicalize_headers(const std::vector<std::string>& headers) noexcept;
     

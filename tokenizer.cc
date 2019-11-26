@@ -6,9 +6,9 @@ using namespace std;
 
 int main()
 {
-    string str("The quick brown fox");
+    string str("The:quick: brown :fox : jumped");
 
-    regex reg("\\s+");
+    regex reg("\\:");
 
     sregex_token_iterator iter(str.begin(), str.end(), reg, -1);
     sregex_token_iterator end;
@@ -17,6 +17,6 @@ int main()
 
     for (auto a : vec)
     {
-        cout << a << endl;
+        cout << "|" << a << "|" << endl;
     }
 }

@@ -40,6 +40,7 @@ int main() {
                 "AKIAIOSFODNN7EXAMPLE", "wJalrXUtnFEMI/K7MDENG+bPxRfiCYEXAMPLEKEY",
                 "us-east-1", "iam", true);
 
+        std::cout << std::endl;
         std::cout << "AWS V4 Authorization and date headers:" << std::endl;
         std::cout << "Authorization:" << auth_header << std::endl;
         std::cout << "x-amz-date:" << AWSV4::ISO8601_date(request_date) << std::endl;

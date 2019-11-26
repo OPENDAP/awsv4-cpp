@@ -42,7 +42,9 @@ namespace AWSV4 {
     // TASK 1 - create a canonical request
     // http://docs.aws.amazon.com/general/latest/gr/sigv4-create-canonical-request.html
 
-    // uri should be normalize()'d before calling here, as this takes a const ref param and we don't
+#if 0
+
+// uri should be normalize()'d before calling here, as this takes a const ref param and we don't
     // want to normalize repeatedly. the return value is not a uri specifically, but a uri fragment,
     // as such the return value should not be used to initialize a uri object
     const std::string canonicalize_uri(const Poco::URI& uri) noexcept {
@@ -68,6 +70,8 @@ namespace AWSV4 {
         return join(parts,query_delim);
     }
 
+#endif
+
     // create a map of the "canonicalized" headers
     // will return empty map on malformed input.
     const std::map<std::string,std::string> canonicalize_headers(const std::vector<std::string>& headers) noexcept {
@@ -92,6 +96,43 @@ namespace AWSV4 {
         }
         return header_key2val;
     }
+
+#if 0
+
+// create a map of the "canonicalized" headers
+    // will return empty map on malformed input.
+    const std::map<std::string,std::string> canonicalize_headers(const std::vector<std::string>& headers) noexcept {
+        const std::string header_delim{":"};
+
+        regex reg("\\:");
+
+        sregex_token_iterator iter(str.begin(), str.end(), reg, -1);
+        sregex_token_iterator end;
+
+        vector<string> vec(iter, end);
+
+        std::map<std::string,std::string> header_key2val;
+        for (const auto& h:headers) {
+            const Poco::StringTokenizer pair{h,header_delim,2}; // 2 -> TOK_TRIM, trim whitespace
+            if (pair.count() != 2) {
+                std::cerr << "malformed header: " << h << std::endl;
+                header_key2val.clear();
+                return header_key2val;
+            }
+            std::string key{pair[0]};
+            const std::string val{pair[1]};
+            if (key.empty() || val.empty()) {
+                std::cerr << "malformed header: " << h << std::endl;
+                header_key2val.clear();
+                return header_key2val;
+            }
+            std::transform(key.begin(), key.end(), key.begin(),::tolower);
+            header_key2val[key] = val;
+        }
+        return header_key2val;
+    }
+
+#endif
 
     // get a string representation of header:value lines
     const std::string map_headers_string(const std::map<std::string,std::string>& header_key2val) noexcept {
@@ -252,6 +293,7 @@ namespace AWSV4 {
                                               const std::string region = "us-west-2", const std::string service = "s3",
                                               const bool verbose = false) {
 
+#if 0
         Poco::URI uri;
         try {
             uri = Poco::URI(uri_str);
@@ -259,37 +301,42 @@ namespace AWSV4 {
             throw std::runtime_error(e.what());
         }
         uri.normalize();
-        const auto canonical_uri = AWSV4::canonicalize_uri(uri);
-        const auto canonical_query = AWSV4::canonicalize_query(uri);
+#endif
+        url uri(uri_str);
+
+        // canonical_uri is the path component of the URL. Later we will need the host.
+        const auto canonical_uri = uri.path(); // AWSV4::canonicalize_uri(uri);
+        // The query string is null for our code.
+        const auto canonical_query = uri.query(); // AWSV4::canonicalize_query(uri);
 
         // We can eliminate one call to sha256 if the payload is null, which
         // is the case for a GET request. jhrg 11/25/19
         const std::string sha256_empty_payload = {"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"};
         // All AWS V4 signature require x-amz-content-sha256. jhrg 11/24/19
         std::vector<std::string> headers{"host: ", "x-amz-date: ", "x-amz-content-sha256: "};
-        headers[0].append(uri.getHost());
-        headers[1].append(AWSV4::ISO8601_date(request_date));
+        headers[0].append(uri.host()); // headers[0].append(uri.getHost());
+        headers[1].append(ISO8601_date(request_date));
         headers[2].append(sha256_empty_payload);
 
-        const auto canonical_headers_map = AWSV4::canonicalize_headers(headers);
+        const auto canonical_headers_map = canonicalize_headers(headers);
         if (canonical_headers_map.empty()) {
             throw std::runtime_error("Empty header list while building AWS V4 request signature");
         }
-        const auto headers_string = AWSV4::map_headers_string(canonical_headers_map);
-        const auto signed_headers = AWSV4::map_signed_headers(canonical_headers_map);
-        const auto canonical_request = AWSV4::canonicalize_request(AWSV4::GET,
-                                                                   canonical_uri,
-                                                                   canonical_query,
-                                                                   headers_string,
-                                                                   signed_headers,
-                                                                   sha256_empty_payload);
+        const auto headers_string = map_headers_string(canonical_headers_map);
+        const auto signed_headers = map_signed_headers(canonical_headers_map);
+        const auto canonical_request = canonicalize_request(AWSV4::GET,
+                                                            canonical_uri,
+                                                            canonical_query,
+                                                            headers_string,
+                                                            signed_headers,
+                                                            sha256_empty_payload);
 
         if (verbose)
             std::cerr << "-- Canonical Request\n" << canonical_request << "\n--\n" << std::endl;
 
-        auto hashed_canonical_request = AWSV4::sha256_base16(canonical_request);
+        auto hashed_canonical_request = sha256_base16(canonical_request);
         auto credential_scope = AWSV4::credential_scope(request_date,region,service);
-        auto string_to_sign = AWSV4::string_to_sign(AWSV4::STRING_TO_SIGN_ALGO,
+        auto string_to_sign = AWSV4::string_to_sign(STRING_TO_SIGN_ALGO,
                                                     request_date,
                                                     credential_scope,
                                                     hashed_canonical_request);
@@ -297,7 +344,7 @@ namespace AWSV4 {
         if (verbose)
             std::cerr << "-- String to Sign\n" << string_to_sign << "\n----\n" << std::endl;
 
-        auto signature = AWSV4::calculate_signature(request_date,
+        auto signature = calculate_signature(request_date,
                                                     secret_key,
                                                     region,
                                                     service,
