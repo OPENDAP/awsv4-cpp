@@ -9,7 +9,7 @@ CFLAGS=-Wall -Werror -Wextra -pedantic -pedantic-errors -std=c++11 -g3 -O0
 MY_CFLAGS=-I$$prefix/deps/include -I/usr/local/Cellar/openssl@1.1/1.1.1d/include
 LDFLAGS=-L$$prefix/deps/lib -L/usr/local/Cellar/openssl@1.1/1.1.1d/lib
 
-LIBS=$(LDFLAGS) -lPocoFoundation -lcrypto
+LIBS=$(LDFLAGS) -lcrypto
 
 # -lPocoNet
 
@@ -22,10 +22,10 @@ lib: awsv4.o
 	$(CXX) awsv4.o url.o -shared -o libawsv4.so
 
 awsv4.o: awsv4.cc awsv4.h
-	$(CXX) -fPIC $(CFLAGS) $(MY_CFLAGS) -c awsv4.cpp
+	$(CXX) -fPIC $(CFLAGS) $(MY_CFLAGS) -c awsv4.cc
 
 main.o: main.cc awsv4.h url.h
-	$(CXX) $(CFLAGS) $(MY_CFLAGS) -c main.cpp
+	$(CXX) $(CFLAGS) $(MY_CFLAGS) -c main.cc
 
 clean:
 	rm -f *.o awsv4 tokenizer
